@@ -1,9 +1,12 @@
 package io.pivotal.pal.tracker;
 
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.DistributionSummary;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import io.micrometer.core.instrument.MeterRegistry;
 
 import java.util.Collection;
 import java.util.List;
@@ -12,11 +15,15 @@ import java.util.List;
 public class TimeEntryController {
 
     private final TimeEntryRepository timeEntryRepository;
+    private final DistributionSummary timeEntrySummary;
+    private final Counter actionCounter;
     long id=1;
 
     @Autowired
-    public TimeEntryController(TimeEntryRepository timeEntryRepository) {
+    public TimeEntryController(TimeEntryRepository timeEntryRepository, MeterRegistry meterRegistry) {
         this.timeEntryRepository = timeEntryRepository;
+        timeEntrySummary = meterRegistry.summary("timeEntry.summary");
+        actionCounter = meterRegistry.counter("timeEntry.actionCounter");
     }
 
     @PostMapping(path = "/time-entries", consumes = "application/json", produces = "application/json")
